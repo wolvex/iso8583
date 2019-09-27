@@ -1,0 +1,21 @@
+package iso8583
+
+const (
+	ISO_ERR_SUCCESS             int = 0
+	ISO_ERR_OTHER               int = 5
+	ISO_ERR_INVALID_TRANSACTION int = 12
+	ISO_ERR_INVALID_AMOUNT      int = 13
+	ISO_ERR_NOT_FOUND           int = 14
+	ISO_ERR_PACKAGE_MUTUAL      int = 50
+	ISO_ERR_PACKAGE_DEPENDANT   int = 51
+	ISO_ERR_PACKAGE_NOT_ALLOWED int = 52
+	ISO_ERR_SUBSCR_HAS_ORDER    int = 53
+	ISO_ERR_PACKAGE_NOT_EXISTS  int = 55
+	ISO_ERR_SUBSCR_BLOCKED      int = 79
+	ISO_ERR_SUSBCR_TERMINATED   int = 81
+	ISO_ERR_BILL_ALREADY_PAID   int = 88
+	ISO_ERR_LINK_ISSUE          int = 91
+	ISO_ERR_ALREADY_REVERSED    int = 94
+	ISO_ERR_TIMEOUT             int = 96
+	ISO_ERR_CANCELLED           int = 97
+)
