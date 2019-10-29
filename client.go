@@ -13,6 +13,8 @@ import (
 
 type Client interface {
 	SignOn() error
+	TearDown()
+	AddTicker()
 	Disconnect() error
 	EchoTest()
 	Send(msg *IsoMsg, res chan *IsoMsg) error
@@ -20,7 +22,7 @@ type Client interface {
 }
 
 type IsoClient struct {
-	ID          int
+	ID          string
 	Address     string
 	Port        int
 	Timeout     int
@@ -30,14 +32,18 @@ type IsoClient struct {
 	LastReceive time.Time
 	SignedOn    bool
 	Stan        int
+	Ticker      int
+	Outgoing    int64
+	Incoming    int64
 }
 
 type Payload struct {
-	Request  *IsoMsg
-	Response chan *IsoMsg
+	Request   *IsoMsg
+	Response  chan *IsoMsg
+	Timestamp time.Time
 }
 
-func NewClient(address string, port int, spec map[int]ElementSpec) (client *IsoClient, err error) {
+func NewClient(address string, port, timeout int, spec map[int]ElementSpec) (client *IsoClient, err error) {
 	defer func() {
 		if err != nil && client != nil {
 			if client.Link != nil {
@@ -48,9 +54,11 @@ func NewClient(address string, port int, spec map[int]ElementSpec) (client *IsoC
 	}()
 
 	client = &IsoClient{
-		ID:      rand.Int(),
+		ID:      fmt.Sprintf("iso@%d", rand.Int()),
 		Address: address,
 		Port:    port,
+		Timeout: timeout,
+		Ticker:  0,
 	}
 
 	url := fmt.Sprintf("%s:%d", address, port)
@@ -74,7 +82,19 @@ func NewClient(address string, port int, spec map[int]ElementSpec) (client *IsoC
 }
 
 func (c *IsoClient) GetID() string {
-	return string(c.ID)
+	return c.ID
+}
+
+func (c *IsoClient) AddTicker() {
+	c.Ticker = c.Ticker + 1
+	if c.Ticker >= 3 {
+		c.TearDown()
+	}
+	return
+}
+
+func (c *IsoClient) IsValid() bool {
+	return c.SignedOn && c.LastReceive.Add(60*time.Second).After(time.Now())
 }
 
 func (c *IsoClient) SignOn() (err error) {
@@ -88,7 +108,7 @@ func (c *IsoClient) SignOn() (err error) {
 	log.WithField("iso8583", msg.Dump()).Info("Sign-on request")
 
 	//set read timeout
-	if err = c.Link.SetReadDeadline(time.Now().Add(3 * time.Second)); err != nil {
+	if err = c.Link.SetReadDeadline(time.Now().Add(5 * time.Second)); err != nil {
 		return
 	}
 
@@ -124,6 +144,10 @@ func (c *IsoClient) SignOn() (err error) {
 	c.SignedOn = true
 
 	return
+}
+
+func (c *IsoClient) TearDown() {
+	c.SignedOn = false
 }
 
 func (c *IsoClient) Disconnect() error {
@@ -164,7 +188,7 @@ func (c *IsoClient) EchoTest(queue map[string]*Payload) {
 			}
 			break
 
-		case <-time.After(10 * time.Second):
+		case <-time.After(5 * time.Second):
 			return fmt.Errorf("Timeout detected !!!")
 		}
 
@@ -178,17 +202,9 @@ func (c *IsoClient) Send(msg *IsoMsg, queue map[string]*Payload, res chan *IsoMs
 	key := messageKey(msg)
 
 	payload := &Payload{
-		Request:  msg,
-		Response: res,
-	}
-
-	log.WithFields(log.Fields{
-		"messageKey": key,
-		"iso8583":    msg.Dump(),
-	}).Info("Submit request")
-
-	if err := c.Packager.Send(msg); err != nil {
-		return err
+		Request:   msg,
+		Response:  res,
+		Timestamp: time.Now(),
 	}
 
 	if queue != nil {
@@ -200,14 +216,28 @@ func (c *IsoClient) Send(msg *IsoMsg, queue map[string]*Payload, res chan *IsoMs
 		queue[key] = payload
 	}
 
+	log.WithFields(log.Fields{
+		"messageKey": key,
+		"iso8583":    msg.Dump(),
+	}).Info("Submit request")
+
+	if err := c.Packager.Send(msg); err != nil {
+		//sending has failed, remove from queue if any
+		if queue != nil {
+			delete(queue, key)
+		}
+		return err
+	}
+
 	c.LastSend = time.Now()
+	c.Outgoing++
 
 	return nil
 }
 
 func (c *IsoClient) Receive(queue map[string]*Payload) (err error) {
 	//set read timeout
-	if err = c.Link.SetReadDeadline(time.Now().Add(5 * time.Second)); err != nil {
+	if err = c.Link.SetReadDeadline(time.Now().Add(time.Duration(c.Timeout) * time.Millisecond)); err != nil {
 		return err
 	}
 
@@ -222,6 +252,7 @@ func (c *IsoClient) Receive(queue map[string]*Payload) (err error) {
 	}
 
 	c.LastReceive = time.Now()
+	c.Incoming++
 
 	key := messageKey(res)
 
