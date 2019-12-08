@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<!--
+    Document   : mFino.xml
+    Created on : June 21, 2010, 3:41 PM
+    Author     : Administrator
+    Description:
+        Purpose of the document follows.
+-->
+
+<iso8583>
+    <bit pos="1" alias="secondary" type="bitmap" varlen="0" maxlen="16"/>
+    <bit pos="2" alias="pan" type="numeric" varlen="2" maxlen="16"/>
+    <bit pos="3" alias="procode" type="numeric" varlen="0" maxlen="6" mandatory="200,210,400,410"/>
+    <bit pos="4" alias="tramount" type="numeric" varlen="0" maxlen="12" mandatory="200,210,400,410"/>
+    <bit pos="7" alias="procode" type="numeric" varlen="0" maxlen="10" mandatory="200,210,400,410"/>
+    <bit pos="11" alias="systrace" type="numeric" varlen="0" maxlen="6" mandatory="200,210,400,410"/>
+    <bit pos="12" alias="time" type="numeric" varlen="0" maxlen="6" mandatory="200,210,400,410"/>
+    <bit pos="13" alias="date" type="numeric" varlen="0" maxlen="4" mandatory="200,210,400,410"/>
+    <bit pos="14" alias="carddate" type="numeric" varlen="0" maxlen="4"/>
+    <bit pos="15" alias="settlement" type="numeric" varlen="0" maxlen="4" mandatory="200,210,400,410"/>
+    <bit pos="18" alias="merchant" type="numeric" varlen="0" maxlen="4" mandatory="200,210,400,410"/>
+    <bit pos="22" alias="posentry" type="string" varlen="0" maxlen="3"/>
+    <bit pos="25" alias="poscondition" type="string" varlen="0" maxlen="2"/>
+    <bit pos="32" alias="acqinstcode" type="numeric" varlen="2" maxlen="11" mandatory="200,210,400,410"/>
+    <bit pos="33" alias="fwdinstcode" type="numeric" varlen="2" maxlen="11" mandatory="800,810,200,210,400,410"/>
+    <bit pos="35" alias="track2" type="string" varlen="2" maxlen="37" mandatory="800,810,200,210,400,410"/>
+    <bit pos="37" alias="refnum" type="string" varlen="0" maxlen="12" mandatory="200,210,400,410"/>
+    <bit pos="38" alias="authidresp" type="string" varlen="0" maxlen="6" mandatory="210,410"/>
+    <bit pos="39" alias="respcode" type="string" varlen="0" maxlen="2" mandatory="210,410,810"/>
+    <bit pos="40" alias="svcrestrict" type="string" varlen="0" maxlen="3" mandatory="200,400"/>
+    <bit pos="41" alias="termid" type="string" varlen="0" maxlen="8" mandatory="200,210,400,410"/>
+    <bit pos="42" alias="cardid" type="string" varlen="0" maxlen="15" mandatory="200,210,400,410"/>
+    <bit pos="43" alias="cardlocation" type="string" varlen="0" maxlen="40" mandatory="200,210,400,410"/>
+    <bit pos="49" alias="currency" type="numeric" varlen="0" maxlen="3" mandatory="200,210,400,410"/>
+    <bit pos="52" alias="pin" type="string" varlen="0" maxlen="16"/>
+    <bit pos="48" alias="request" type="string" varlen="3" maxlen="999" mandatory="200,210,400,410"/>
+    <bit pos="61" alias="request" type="string" varlen="3" maxlen="999" mandatory="200,210,400,410"/>
+    <bit pos="62" alias="response" type="string" varlen="3" maxlen="999" mandatory="210"/>
+    <bit pos="63" alias="instcode" type="string" varlen="3" maxlen="999" mandatory="210"/>
+    <bit pos="70" alias="network" type="numeric" varlen="0" maxlen="3" mandatory="800,810"/>
+    <bit pos="90" alias="original" type="numeric" varlen="0" maxlen="42" mandatory="400,410"/>
+    <bit pos="98" alias="payee" type="string" varlen="0" maxlen="25" mandatory="0200,0210,400,410"/>
+    <bit pos="102" alias="accid1" type="string" varlen="2" maxlen="28"/>
+    <bit pos="103" alias="accid2" type="string" varlen="2" maxlen="28"/>
+</iso8583>
