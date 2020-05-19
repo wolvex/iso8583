@@ -246,6 +246,8 @@ func (c *IsoClient) Receive(queue map[string]*Payload) (err error) {
 		return err
 	}
 
+	log.WithField("message", string(msg)).Info("Received message")
+
 	var res *IsoMsg
 	if res, err = c.Packager.Unpack(msg); err != nil {
 		return err
@@ -268,14 +270,14 @@ func (c *IsoClient) Receive(queue map[string]*Payload) (err error) {
 	log.WithFields(log.Fields{
 		"messageKey": key,
 		"iso8583":    res.Dump(),
-	}).Debug("Finding request payload in queue")
+	}).Info("Finding request payload in queue")
 
 	if payload, ok := queue[key]; ok {
 		//push response back to caller
 		log.WithFields(log.Fields{
 			"messageKey": key,
 			"iso8583":    res.Dump(),
-		}).Debug("Pushing response to callback queue")
+		}).Info("Pushing response to callback queue")
 
 		payload.Response <- res
 

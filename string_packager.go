@@ -3,9 +3,10 @@ package iso8583
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 type StringPackager struct {
@@ -23,24 +24,64 @@ func NewStringPackager(specs map[int]ElementSpec, reader *bufio.Reader, writer *
 	return packager
 }
 
+func ReadNextBytes(reader *bufio.Reader, length int) ([]byte, error) {
+	log.WithField("length", length).Info("Reading next X bytes from stream")
+
+	payload := make([]byte, 0)
+	for {
+		if len(payload) >= length {
+			break
+		}
+		if b, err := reader.ReadByte(); err != nil {
+			if payload != nil {
+				log.WithFields(log.Fields{
+					"payload": string(payload),
+					"error":   err,
+				}).Error("Error caught but buffer has data")
+			}
+			return payload, err
+		} else {
+			//log.WithFields(log.Fields{
+			//	"byte":    b,
+			//	"payload": payload,
+			//}).Info("Reading payload")
+			payload = append(payload, b)
+		}
+	}
+	return payload, nil
+}
+
 func (packager *StringPackager) Read() (msg []byte, err error) {
+	/**
 	header := make([]byte, 4)
 	_, err = io.ReadFull(packager.Reader, header)
 	if err != nil {
 		return
+	}*/
+	header, err := ReadNextBytes(packager.Reader, 4)
+	if err != nil {
+		return nil, err
 	}
+	log.WithField("header", string(header)).Info("Read 4 bytes of header")
 
-	len := 0
-	len, err = strconv.Atoi(string(header[:]))
+	size := 0
+	size, err = strconv.Atoi(string(header[:]))
 	if err != nil {
 		return
 	}
 
+	/**
 	body := make([]byte, len)
 	_, err = io.ReadFull(packager.Reader, body)
 	if err != nil {
 		return
 	}
+	*/
+	body, err := ReadNextBytes(packager.Reader, size)
+	if err != nil {
+		return
+	}
+	log.WithField("body", string(body)).Info("Read X bytes of body")
 
 	return body, nil
 }
@@ -209,6 +250,7 @@ func (packager *StringPackager) Unpack(msg []byte) (iso *IsoMsg, err error) {
 		return
 	}
 	for i := 65; i <= 128; i++ {
+		//fmt.Printf("processing bit %d\n", i)
 		if bitmap[i-65:i-64] == "1" {
 			spec, ok := packager.Specs[i]
 			length := 0

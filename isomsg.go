@@ -3,6 +3,7 @@ package iso8583
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -10,7 +11,8 @@ type IsoMsg struct {
 	MessageType string `json:"messageType"`
 	//PrimaryBitmap   string         `json:"primaryBitmap"`
 	//SecondaryBitmap string         `json:"secondaryBitmap"`
-	Element map[int]string `json:"elements"`
+	Element   map[int]string `json:"elements"`
+	MessageID string         `json:"messageId"`
 }
 
 func NewIsoMsg() *IsoMsg {
@@ -26,6 +28,23 @@ func (msg *IsoMsg) SetMessageType(val string) {
 
 func (msg *IsoMsg) GetMessageType() string {
 	return msg.MessageType
+}
+
+func (msg *IsoMsg) GetMessageKey() string {
+	mty := msg.GetMessageType()[0:2]
+	if mty == "08" {
+		return fmt.Sprintf("%s-%010s-%06s-%06s", mty, msg.GetBit(7), msg.GetBit(11), msg.GetBit(32))
+	} else {
+		return fmt.Sprintf("%s-%s-%010s-%06s-%06s", mty, msg.GetBit(3)[0:2], msg.GetBit(7), msg.GetBit(11), msg.GetBit(32))
+	}
+}
+
+func (msg *IsoMsg) SetMessageID(val string) {
+	msg.MessageID = val
+}
+
+func (msg *IsoMsg) GetMessageID() string {
+	return msg.MessageID
 }
 
 /*
