@@ -27,10 +27,11 @@ func NewStringPackager(specs map[int]ElementSpec, reader *bufio.Reader, writer *
 func ReadNextBytes(reader *bufio.Reader, length int) ([]byte, error) {
 	log.WithField("length", length).Info("Reading next X bytes from stream")
 
-	payload := make([]byte, 0)
+	//payload := make([]byte, 0)
+	var payload []byte
 	for {
 		if len(payload) >= length {
-			break
+			return payload, nil
 		}
 		if b, err := reader.ReadByte(); err != nil {
 			if payload != nil {
@@ -48,7 +49,7 @@ func ReadNextBytes(reader *bufio.Reader, length int) ([]byte, error) {
 			payload = append(payload, b)
 		}
 	}
-	return payload, nil
+	//return payload, nil
 }
 
 func (packager *StringPackager) Read() (msg []byte, err error) {
