@@ -327,7 +327,14 @@ func binToHex(s string) (string, error) {
 }
 
 func readNext(str string, start, length int) (s string, i int) {
-	s = str[start : start+length]
-	i = start + length
+	//	s = str[start : start+length]
+	//	i = start + length
+	//	return
+	end := start + length
+	if len(str) < end {
+		end = len(str)
+	}
+	s = str[start:end]
+	i = end
 	return
 }
